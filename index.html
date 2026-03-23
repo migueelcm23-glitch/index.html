@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zona94_ Tienda de Ropa</title>
+<style>
+* { box-sizing: border-box; margin:0; padding:0; font-family: Arial, sans-serif; }
+body { background:#f5f5f5; color:#333; }
+header, footer { background:#222; color:#fff; text-align:center; padding:15px; }
+header h1, footer p { margin-bottom:10px; }
+nav a { color:#fff; margin:0 10px; text-decoration:none; font-weight:bold; }
+nav a:hover { text-decoration:underline; }
+main { padding:20px; }
+#categorias { display:flex; justify-content:space-around; margin-bottom:20px; }
+.categoria a { display:block; background:#ff9800; color:#fff; padding:10px 20px; border-radius:5px; text-align:center; font-weight:bold; text-decoration:none;}
+.categoria a:hover { background:#e68900; }
+#productos { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:20px; }
+.producto { background:#fff; padding:10px; border-radius:5px; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+.producto img { width:100%; height:auto; margin-bottom:10px; }
+.producto h3 { font-size:1.1rem; margin-bottom:5px; }
+.producto p { font-size:0.9rem; margin-bottom:5px; }
+.producto button { padding:5px 10px; background:#4caf50; color:#fff; border:none; border-radius:3px; cursor:pointer; }
+.producto button:hover { background:#43a047; }
+#carrito-productos, #lista-admin-productos, #lista-pedidos, #resultados-busqueda, #lista-comentarios { margin-top:10px; }
+.producto-carrito, .pedido, .comentario { background:#fff; padding:10px; margin-bottom:10px; border-radius:5px; box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+#buscador { width:100%; padding:5px; margin-bottom:10px; }
+</style>
+
+<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- PayPal SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id=sb&currency=EUR"></script>
+</head>
+<body>
+
+<header>
+<h1>Zona94_ Tienda de Ropa</h1>
+<nav>
+<a href="#inicio">Inicio</a>
+<a href="#carrito">Carrito</a>
+<a href="#admin">Panel Admin</a>
+<a href="#promociones">Promociones</a>
+<a href="#usuarios">Usuarios</a>
+</nav>
+</header>
+
+<main id="inicio">
+<h2>Categorías</h2>
+<div id="categorias">
+  <div class="categoria"><a href="#futbol">⚽ Fútbol</a></div>
+  <div class="categoria"><a href="#baloncesto">🏀 Baloncesto</a></div>
+  <div class="categoria"><a href="#variada">👕 Ropa Variada</a></div>
+</div>
+
+<h2>Productos Destacados</h2>
+<input type="text" id="buscador" placeholder="Buscar producto...">
+<div id="resultados-busqueda"></div>
+<div id="productos"></div>
+</main>
+
+<section id="carrito">
+<h2>Carrito de Compras</h2>
+<div id="carrito-productos"></div>
+<div id="resumen-carrito">
+<p>Total productos: <span id="total-prendas">0</span></p>
+<p>Descuento aplicado: <span id="descuento">0%</span></p>
+<p>Total final: €<span id="total-final">0</span></p>
+<div id="paypal-button-container"></div>
+<button id="descargar-factura">Descargar factura PDF</button>
+</div>
+</section>
+
+<section id="usuarios">
+<h2>Registro / Login</h2>
+<div id="form-registro">
+<h3>Registro</h3>
+<input type="text" id="reg-nombre" placeholder="Nombre">
+<input type="email" id="reg-email" placeholder="Email">
+<input type="password" id="reg-password" placeholder="Contraseña">
+<button id="btn-registrar">Registrar</button>
+</div>
+<div id="form-login">
+<h3>Login</h3>
+<input type="email" id="login-email" placeholder="Email">
+<input type="password" id="login-password" placeholder="Contraseña">
+<button id="btn-login">Iniciar sesión</button>
+<button id="btn-logout">Cerrar sesión</button>
+</div>
+<div id="perfil-usuario" style="display:none;">
+<h3>Perfil</h3>
+<p>Bienvenido <span id="usuario-nombre"></span></p>
+<div id="lista-pedidos"></div>
+</div>
+</section>
+
+<section id="comentarios">
+<h2>Comentarios de clientes</h2>
+<div id="lista-comentarios"><p>No hay comentarios todavía</p></div>
+<div id="nuevo-comentario" style="display:none;">
+<h3>Deja tu comentario</h3>
+<textarea id="texto-comentario" placeholder="Escribe tu opinión..."></textarea>
+<input type="text" id="url-foto" placeholder="URL de tu foto (opcional)">
+<button id="btn-comentar">Publicar comentario</button>
+</div>
+</section>
+
+<footer>
+<p>&copy; 2026 Zona94_ - Todos los derechos reservados</p>
+</footer>
+
+<script>
+// ===== Productos =====
+let productos = [
+{id:1,nombre:"Camiseta Fútbol",categoria:"futbol",precio:20,stock:10,talla:"M",marca:"Nike",img:"https://via.placeholder.com/150"},
+{id:2,nombre:"Pantalón Baloncesto",categoria:"baloncesto",precio:25,stock:8,talla:"L",marca:"Adidas",img:"https://via.placeholder.com/150"},
+{id:3,nombre:"Sudadera Variada",categoria:"variada",precio:30,stock:15,talla:"S",marca:"Puma",img:"https://via.placeholder.com/150"}
+];
+
+let carrito = [];
+let usuarioActivo = JSON.parse(localStorage.getItem("usuarioActivo")) || null;
+let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+let comentarios = JSON.parse(localStorage.getItem("comentarios")) || [];
+const idProductoActual = 1;
+
+// ===== Mostrar productos =====
+const contenedorProductos = document.getElementById("productos");
+function mostrarProductos(){
+  contenedorProductos.innerHTML = "";
+  productos.forEach(p=>{
+    let div=document.createElement("div");
+    div.classList.add("producto");
+    div.innerHTML=`<img src="${p.img}" alt="${p.nombre}">
+<h3>${p.nombre}</h3>
+<p>Marca: ${p.marca}</p>
+<p>Talla: ${p.talla}</p>
+<p>Precio: €${p.precio}</p>
+<button onclick="agregarAlCarrito(${p.id})">Agregar al carrito</button>
+<button onclick="toggleFavorito(${p.id})" id="fav-${p.id}">❤️</button>`;
+    contenedorProductos.appendChild(div);
+    if(usuarioActivo && usuarioActivo.favoritos && usuarioActivo.favoritos.includes(p.id)){
+      document.getElementById(`fav-${p.id}`).textContent="❤️";
+    } else {
+      document.getElementById(`fav-${p.id}`).textContent="🤍";
+    }
+  });
+}
+
+// ===== Carrito =====
+function agregarAlCarrito(id){
+  let p=productos.find(x=>x.id===id);
+  carrito.push(p);
+  mostrarCarritoCompleto();
+}
+function calcularDescuentoCarrito(){
+  let totalPrendas=carrito.length;
+  let totalPrecio=carrito.reduce((sum,p)=>sum+p.precio,0);
+  let descuento=0;
+  if(totalPrendas>=16) descuento=0.10;
+  else if(totalPrendas>=8) descuento=0.05;
+  return {descuento,totalFinal:totalPrecio*(1-descuento),totalPrendas};
+}
+const contenedorCarrito=document.getElementById("carrito-productos");
+const totalPrendasSpan=document.getElementById("total-prendas");
+const descuentoSpan=document.getElementById("descuento");
+const totalFinalSpan=document.getElementById("total-final");
+function mostrarCarritoCompleto(){
+  contenedorCarrito.innerHTML="";
+  carrito.forEach((p,i)=>{
+    const div=document.createElement("div");
+    div.classList.add("producto-carrito");
+    div.innerHTML=`<p>${p.nombre} - €${p.precio}</p>
+<button onclick="quitarDelCarrito(${i})">Quitar</button>`;
+    contenedorCarrito.appendChild(div);
+  });
+  actualizarResumen();
+}
+function quitarDelCarrito(i){ carrito.splice(i,1); mostrarCarritoCompleto();}
+function actualizarResumen(){
+  const r=calcularDescuentoCarrito();
+  totalPrendasSpan.textContent=r.totalPrendas;
+  descuentoSpan.textContent=r.descuento*100+"%";
+  totalFinalSpan.textContent=r.totalFinal.toFixed(2);
+}
+
+// ===== Favoritos =====
+function toggleFavorito(id){
+  if(!usuarioActivo) return alert("Inicia sesión para favoritos");
+  usuarioActivo.favoritos=usuarioActivo.favoritos||[];
+  const idx=usuarioActivo.favoritos.indexOf(id);
+  if(idx>=0){ usuarioActivo.favoritos.splice(idx,1); document.getElementById(`fav-${id}`).textContent="🤍"; }
+  else { usuarioActivo.favoritos.push(id); document.getElementById(`fav-${id}`).textContent="❤️"; }
+  actualizarUsuarios();
+}
+
+// ===== Usuarios =====
+const formRegNombre=document.getElementById("reg-nombre");
+const formRegEmail=document.getElementById("reg-email");
+const formRegPass=document.getElementById("reg-password");
+document.getElementById("btn-registrar").addEventListener("click",()=>{
+  const nombre=formRegNombre.value.trim();
+  const email=formRegEmail.value.trim();
+  const pass=formRegPass.value.trim();
+  if(!nombre||!email||!pass) return alert("Completa todos los campos");
+  if(usuarios.some(u=>u.email===email)) return alert("Email ya registrado");
+  usuarios.push({nombre,email,password:pass,pedidos:[],favoritos:[]});
+  actualizarUsuarios();
+  alert("Registro exitoso");
+  formRegNombre.value=""; formRegEmail.value=""; formRegPass.value="";
+});
+document.getElementById("btn-login").addEventListener("click",()=>{
+  const email=document.getElementById("login-email").value.trim();
+  const pass=document.getElementById("login-password").value.trim();
+  const usuario=usuarios.find(u=>u.email===email&&u.password===pass);
+  if(!usuario) return alert("Email o contraseña incorrectos");
+  usuarioActivo=usuario;
+  localStorage.setItem("usuarioActivo",JSON.stringify(usuarioActivo));
+  mostrarPerfil();
+});
+document.getElementById("btn-logout").addEventListener("click",()=>{
+  usuarioActivo=null;
+  localStorage.removeItem("usuarioActivo");
+  mostrarPerfil();
+});
+function mostrarPerfil(){
+  if(usuarioActivo){
+    document.getElementById("form-registro").style.display="none";
+    document.getElementById("form-login").style.display="none";
+    document.getElementById("perfil-usuario").style.display="block";
+    document.getElementById("usuario-nombre").textContent=usuarioActivo.nombre;
+  } else {
+    document.getElementById("form-registro").style.display="block";
+    document.getElementById("form-login").style.display="block";
+    document.getElementById("perfil-usuario").style.display="none";
+  }
+}
+function actualizarUsuarios(){ localStorage.setItem("usuarios",JSON.stringify(usuarios)); }
+
+// ===== Comentarios =====
+const listaComentarios=document.getElementById("lista-comentarios");
+const nuevoComentarioDiv=document.getElementById("nuevo-comentario");
+const btnComentar=document.getElementById("btn-comentar");
+const textoComentario=document.getElementById("texto-comentario");
+const urlFoto=document.getElementById("url-foto");
+function mostrarComentarios(){
+  listaComentarios.innerHTML="";
+  const lista=comentarios.filter(c=>c.productoId===idProductoActual);
+  if(lista.length===0){ listaComentarios.innerHTML="<p>No hay comentarios todavía</p>"; return; }
+  lista.forEach(c=>{
+    const div=document.createElement("div");
+    div.classList.add("comentario");
+    div.innerHTML=`<p><strong>${c.usuario}</strong></p><p>${c.texto}</p>${c.foto?`<img src="${c.foto}" style="max-width:200px;">`:""}<hr>`;
+    listaComentarios.appendChild(div);
+  });
+}
+function verificarFormulario(){ 
+  if(usuarioActivo && usuarioActivo.pedidos.some(p=>p.productos.some(prod=>prod.id===idProductoActual))) nuevoComentarioDiv.style.display="block";
+  else nuevoComentarioDiv.style.display="none";
+}
+btnComentar.addEventListener("click",()=>{
+  if(!usuarioActivo) return alert("Inicia sesión para comentar");
+  const texto=textoComentario.value.trim();
+  const foto=urlFoto.value.trim();
+  if(!texto) return alert("Escribe tu comentario");
+  comentarios.push({productoId:idProductoActual,usuario:usuarioActivo.nombre,texto,foto});
+  localStorage.setItem("comentarios",JSON.stringify(comentarios));
+  textoComentario.value=""; urlFoto.value="";
+  mostrarComentarios();
+});
+window.onload=()=>{
+  mostrarProductos(); mostrarCarritoCompleto(); mostrarPerfil(); mostrarComentarios(); verificarFormulario(); initPayPalButton();
+};
+
+// ===== Buscador =====
+const inputBuscador=document.getElementById("buscador");
+const resultados=document.getElementById("resultados-busqueda");
+inputBuscador.addEventListener("input",()=>{
+  const q=inputBuscador.value.toLowerCase();
+  const filtrados=productos.filter(p=>p.nombre.toLowerCase().includes(q)||p.marca.toLowerCase().includes(q)||p.categoria.toLowerCase().includes(q));
+  resultados.innerHTML="";
+  filtrados.forEach(p=>{
+    const div=document.createElement("div");
+    div.textContent=`${p.nombre} - ${p.marca} - €${p.precio}`;
+    resultados.appendChild(div);
+  });
+});
+
+// ===== Factura PDF =====
+document.getElementById("descargar-factura").addEventListener("click",()=>{
+  if(!usuarioActivo||usuarioActivo.pedidos.length===0) return alert("No hay pedidos");
+  const pedido=usuarioActivo.pedidos[usuarioActivo.pedidos.length-1];
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  doc.setFontSize(16); doc.text("Factura Zona94_",20,20);
+  doc.setFontSize(12); doc.text(`Cliente: ${usuarioActivo.nombre}`,20,30);
+  doc.text(`Fecha: ${new Date(pedido.fecha).toLocaleDateString()}`,20,40);
+  doc.text(`Total: €${pedido.total.toFixed(2)}`,20,50);
+  doc.text("Productos:",20,60);
+  pedido.productos.forEach((p,i)=>doc.text(`${i+1}. ${p.nombre} - €${p.precio}`,25,70+i*10));
+  doc.save("Factura_Zona94.pdf");
+});
+
+// ===== PayPal =====
+function initPayPalButton(){
+  paypal.Buttons({
+    style:{shape:'rect',color:'blue',layout:'vertical',label:'paypal'},
+    createOrder:(data,actions)=>{
+      return actions.order.create({purchase_units:[{amount:{value:calcularDescuentoCarrito().totalFinal.toFixed(2)}}]});
+    },
+    onApprove:(data,actions)=>{
+      return actions.order.capture().then(details=>{
+        alert('Pago completado por '+details.payer.name.given_name);
+        if(usuarioActivo){
+          usuarioActivo.pedidos.push({productos:[...carrito],total:calcularDescuentoCarrito().totalFinal,estado:"Pendiente",fecha:new Date()});
+          carrito=[]; mostrarCarritoCompleto(); mostrarPerfil(); actualizarUsuarios();
+        } else alert("Inicia sesión para guardar pedido");
+      });
+    },
+    onError:err=>{ console.error(err); alert("Error con PayPal"); }
+  }).render('#paypal-button-container');
+}
+</script>
+
+</body>
+</html>
