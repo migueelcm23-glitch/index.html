@@ -1,325 +1,1502 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zona94_ Tienda de Ropa</title>
-<style>
-* { box-sizing: border-box; margin:0; padding:0; font-family: Arial, sans-serif; }
-body { background:#f5f5f5; color:#333; }
-header, footer { background:#222; color:#fff; text-align:center; padding:15px; }
-header h1, footer p { margin-bottom:10px; }
-nav a { color:#fff; margin:0 10px; text-decoration:none; font-weight:bold; }
-nav a:hover { text-decoration:underline; }
-main { padding:20px; }
-#categorias { display:flex; justify-content:space-around; margin-bottom:20px; }
-.categoria a { display:block; background:#ff9800; color:#fff; padding:10px 20px; border-radius:5px; text-align:center; font-weight:bold; text-decoration:none;}
-.categoria a:hover { background:#e68900; }
-#productos { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:20px; }
-.producto { background:#fff; padding:10px; border-radius:5px; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-.producto img { width:100%; height:auto; margin-bottom:10px; }
-.producto h3 { font-size:1.1rem; margin-bottom:5px; }
-.producto p { font-size:0.9rem; margin-bottom:5px; }
-.producto button { padding:5px 10px; background:#4caf50; color:#fff; border:none; border-radius:3px; cursor:pointer; }
-.producto button:hover { background:#43a047; }
-#carrito-productos, #lista-admin-productos, #lista-pedidos, #resultados-busqueda, #lista-comentarios { margin-top:10px; }
-.producto-carrito, .pedido, .comentario { background:#fff; padding:10px; margin-bottom:10px; border-radius:5px; box-shadow:0 1px 3px rgba(0,0,0,0.1);}
-#buscador { width:100%; padding:5px; margin-bottom:10px; }
-</style>
-
-<!-- jsPDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<!-- PayPal SDK -->
-<script src="https://www.paypal.com/sdk/js?client-id=sb&currency=EUR"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zona94_ Tienda de Ropa</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <header>
+    <h1>Zona94_ Tienda de Ropa</h1>
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="carrito.html">Carrito</a>
+      <a href="admin.html">Panel Admin</a>
+      <a href="promociones.html">Promociones</a>
+    </nav>
+  </header>
 
-<header>
-<h1>Zona94_ Tienda de Ropa</h1>
-<nav>
-<a href="#inicio">Inicio</a>
-<a href="#carrito">Carrito</a>
-<a href="#admin">Panel Admin</a>
-<a href="#promociones">Promociones</a>
-<a href="#usuarios">Usuarios</a>
-</nav>
-</header>
+  <main>
+    <section id="categorias">
+      <h2>Categorías</h2>
+      <div class="categoria">
+        <a href="categoria.html?cat=futbol">⚽ Fútbol</a>
+      </div>
+      <div class="categoria">
+        <a href="categoria.html?cat=baloncesto">🏀 Baloncesto</a>
+      </div>
+      <div class="categoria">
+        <a href="categoria.html?cat=variada">👕 Ropa Variada</a>
+      </div>
+    </section>
 
-<main id="inicio">
-<h2>Categorías</h2>
-<div id="categorias">
-  <div class="categoria"><a href="#futbol">⚽ Fútbol</a></div>
-  <div class="categoria"><a href="#baloncesto">🏀 Baloncesto</a></div>
-  <div class="categoria"><a href="#variada">👕 Ropa Variada</a></div>
-</div>
+    <section id="productos">
+      <h2>Productos Destacados</h2>
+      <div id="lista-productos">
+        <!-- Aquí se cargarán los productos dinámicamente -->
+      </div>
+    </section>
+  </main>
 
-<h2>Productos Destacados</h2>
-<input type="text" id="buscador" placeholder="Buscar producto...">
-<div id="resultados-busqueda"></div>
-<div id="productos"></div>
-</main>
+  <footer>
+    <p>&copy; 2026 Zona94_ - Todos los derechos reservados</p>
+  </footer>
 
-<section id="carrito">
-<h2>Carrito de Compras</h2>
-<div id="carrito-productos"></div>
-<div id="resumen-carrito">
-<p>Total productos: <span id="total-prendas">0</span></p>
-<p>Descuento aplicado: <span id="descuento">0%</span></p>
-<p>Total final: €<span id="total-final">0</span></p>
-<div id="paypal-button-container"></div>
-<button id="descargar-factura">Descargar factura PDF</button>
-</div>
-</section>
-
-<section id="usuarios">
-<h2>Registro / Login</h2>
-<div id="form-registro">
-<h3>Registro</h3>
-<input type="text" id="reg-nombre" placeholder="Nombre">
-<input type="email" id="reg-email" placeholder="Email">
-<input type="password" id="reg-password" placeholder="Contraseña">
-<button id="btn-registrar">Registrar</button>
-</div>
-<div id="form-login">
-<h3>Login</h3>
-<input type="email" id="login-email" placeholder="Email">
-<input type="password" id="login-password" placeholder="Contraseña">
-<button id="btn-login">Iniciar sesión</button>
-<button id="btn-logout">Cerrar sesión</button>
-</div>
-<div id="perfil-usuario" style="display:none;">
-<h3>Perfil</h3>
-<p>Bienvenido <span id="usuario-nombre"></span></p>
-<div id="lista-pedidos"></div>
-</div>
-</section>
-
-<section id="comentarios">
-<h2>Comentarios de clientes</h2>
-<div id="lista-comentarios"><p>No hay comentarios todavía</p></div>
-<div id="nuevo-comentario" style="display:none;">
-<h3>Deja tu comentario</h3>
-<textarea id="texto-comentario" placeholder="Escribe tu opinión..."></textarea>
-<input type="text" id="url-foto" placeholder="URL de tu foto (opcional)">
-<button id="btn-comentar">Publicar comentario</button>
-</div>
-</section>
-
-<footer>
-<p>&copy; 2026 Zona94_ - Todos los derechos reservados</p>
-</footer>
-
-<script>
-// ===== Productos =====
+  <script src="js/main.js"></script>
+</body>
+</html>
+// Array de ejemplo con productos
 let productos = [
-{id:1,nombre:"Camiseta Fútbol",categoria:"futbol",precio:20,stock:10,talla:"M",marca:"Nike",img:"https://via.placeholder.com/150"},
-{id:2,nombre:"Pantalón Baloncesto",categoria:"baloncesto",precio:25,stock:8,talla:"L",marca:"Adidas",img:"https://via.placeholder.com/150"},
-{id:3,nombre:"Sudadera Variada",categoria:"variada",precio:30,stock:15,talla:"S",marca:"Puma",img:"https://via.placeholder.com/150"}
+  {id:1, nombre:"Camiseta Fútbol", categoria:"futbol", precio:20, stock:10, talla:"M", marca:"Nike", img:"images/futbol1.jpg"},
+  {id:2, nombre:"Pantalón Baloncesto", categoria:"baloncesto", precio:25, stock:8, talla:"L", marca:"Adidas", img:"images/baloncesto1.jpg"},
+  {id:3, nombre:"Sudadera Variada", categoria:"variada", precio:30, stock:15, talla:"S", marca:"Puma", img:"images/variada1.jpg"}
 ];
 
+// Carrito
 let carrito = [];
-let usuarioActivo = JSON.parse(localStorage.getItem("usuarioActivo")) || null;
-let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
-let comentarios = JSON.parse(localStorage.getItem("comentarios")) || [];
-const idProductoActual = 1;
 
-// ===== Mostrar productos =====
-const contenedorProductos = document.getElementById("productos");
-function mostrarProductos(){
-  contenedorProductos.innerHTML = "";
-  productos.forEach(p=>{
-    let div=document.createElement("div");
+// Función para mostrar productos en la página
+function mostrarProductos() {
+  const contenedor = document.getElementById("lista-productos");
+  contenedor.innerHTML = "";
+
+  productos.forEach(producto => {
+    let div = document.createElement("div");
     div.classList.add("producto");
-    div.innerHTML=`<img src="${p.img}" alt="${p.nombre}">
-<h3>${p.nombre}</h3>
-<p>Marca: ${p.marca}</p>
-<p>Talla: ${p.talla}</p>
-<p>Precio: €${p.precio}</p>
-<button onclick="agregarAlCarrito(${p.id})">Agregar al carrito</button>
-<button onclick="toggleFavorito(${p.id})" id="fav-${p.id}">❤️</button>`;
-    contenedorProductos.appendChild(div);
-    if(usuarioActivo && usuarioActivo.favoritos && usuarioActivo.favoritos.includes(p.id)){
-      document.getElementById(`fav-${p.id}`).textContent="❤️";
-    } else {
-      document.getElementById(`fav-${p.id}`).textContent="🤍";
-    }
+    div.innerHTML = `
+      <img src="${producto.img}" alt="${producto.nombre}">
+      <h3>${producto.nombre}</h3>
+      <p>Marca: ${producto.marca}</p>
+      <p>Talla: ${producto.talla}</p>
+      <p>Precio: €${producto.precio}</p>
+      <button onclick="agregarAlCarrito(${producto.id})">Agregar al carrito</button>
+    `;
+    contenedor.appendChild(div);
   });
 }
 
-// ===== Carrito =====
-function agregarAlCarrito(id){
-  let p=productos.find(x=>x.id===id);
-  carrito.push(p);
-  mostrarCarritoCompleto();
+// Función para agregar producto al carrito
+function agregarAlCarrito(id) {
+  let producto = productos.find(p => p.id === id);
+  carrito.push(producto);
+  alert(`${producto.nombre} agregado al carrito`);
+  mostrarCarrito();
 }
-function calcularDescuentoCarrito(){
-  let totalPrendas=carrito.length;
-  let totalPrecio=carrito.reduce((sum,p)=>sum+p.precio,0);
-  let descuento=0;
-  if(totalPrendas>=16) descuento=0.10;
-  else if(totalPrendas>=8) descuento=0.05;
-  return {descuento,totalFinal:totalPrecio*(1-descuento),totalPrendas};
+
+// Calcular descuento según cantidad
+function calcularDescuento() {
+  let totalPrendas = carrito.length;
+  let totalPrecio = carrito.reduce((sum, p) => sum + p.precio, 0);
+  let descuento = 0;
+
+  if(totalPrendas >= 16) descuento = 0.10;
+  else if(totalPrendas >= 8) descuento = 0.05;
+
+  return totalPrecio * (1 - descuento);
 }
-const contenedorCarrito=document.getElementById("carrito-productos");
-const totalPrendasSpan=document.getElementById("total-prendas");
-const descuentoSpan=document.getElementById("descuento");
-const totalFinalSpan=document.getElementById("total-final");
-function mostrarCarritoCompleto(){
-  contenedorCarrito.innerHTML="";
-  carrito.forEach((p,i)=>{
-    const div=document.createElement("div");
+
+// Mostrar carrito (solo en consola por ahora)
+function mostrarCarrito() {
+  console.clear();
+  console.log("Carrito actual:");
+  carrito.forEach(p => console.log(p.nombre + " €" + p.precio));
+  console.log("Total con descuento: €" + calcularDescuento());
+}
+
+// Ejecutar al cargar la página
+window.onload = mostrarProductos;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+header {
+  background-color: #222;
+  color: #fff;
+  padding: 15px;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+nav a {
+  color: #fff;
+  margin: 0 10px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+main {
+  padding: 20px;
+}
+
+#categorias {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.categoria a {
+  display: block;
+  background-color: #ff9800;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.categoria a:hover {
+  background-color: #e68900;
+}
+
+#productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.producto {
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.producto img {
+  width: 100%;
+  height: auto;
+  margin-bottom: 10px;
+}
+
+.producto h3 {
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+}
+
+.producto p {
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+}
+
+.producto button {
+  padding: 5px 10px;
+  background-color: #4caf50;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.producto button:hover {
+  background-color: #43a047;
+}
+
+footer {
+  background-color: #222;
+  color: #fff;
+  padding: 15px;
+  text-align: center;
+  margin-top: 20px;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrito - Zona94_</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>Zona94_ Tienda de Ropa</h1>
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="carrito.html">Carrito</a>
+      <a href="admin.html">Panel Admin</a>
+      <a href="promociones.html">Promociones</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Carrito de Compras</h2>
+    <div id="carrito-productos">
+      <!-- Productos del carrito se cargarán aquí -->
+    </div>
+    <div id="resumen-carrito">
+      <p>Total productos: <span id="total-prendas">0</span></p>
+      <p>Descuento aplicado: <span id="descuento">0%</span></p>
+      <p>Total final: €<span id="total-final">0</span></p>
+      <button id="pagar">Pagar con Stripe</button>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Zona94_ - Todos los derechos reservados</p>
+  </footer>
+
+  <script src="js/carrito.js"></script>
+</body>
+</html>
+// Carrito desde main.js
+let carritoActual = carrito; // Reutilizamos el array carrito que está en main.js
+
+const contenedorCarrito = document.getElementById("carrito-productos");
+const totalPrendasSpan = document.getElementById("total-prendas");
+const descuentoSpan = document.getElementById("descuento");
+const totalFinalSpan = document.getElementById("total-final");
+
+// Función para mostrar carrito
+function mostrarCarritoCompleto() {
+  contenedorCarrito.innerHTML = "";
+
+  carritoActual.forEach((producto, index) => {
+    const div = document.createElement("div");
     div.classList.add("producto-carrito");
-    div.innerHTML=`<p>${p.nombre} - €${p.precio}</p>
-<button onclick="quitarDelCarrito(${i})">Quitar</button>`;
+    div.innerHTML = `
+      <p>${producto.nombre} - €${producto.precio}</p>
+      <button onclick="quitarDelCarrito(${index})">Quitar</button>
+    `;
     contenedorCarrito.appendChild(div);
   });
+
   actualizarResumen();
 }
-function quitarDelCarrito(i){ carrito.splice(i,1); mostrarCarritoCompleto();}
-function actualizarResumen(){
-  const r=calcularDescuentoCarrito();
-  totalPrendasSpan.textContent=r.totalPrendas;
-  descuentoSpan.textContent=r.descuento*100+"%";
-  totalFinalSpan.textContent=r.totalFinal.toFixed(2);
+
+// Función para quitar producto del carrito
+function quitarDelCarrito(index) {
+  carritoActual.splice(index, 1);
+  mostrarCarritoCompleto();
 }
 
-// ===== Favoritos =====
-function toggleFavorito(id){
-  if(!usuarioActivo) return alert("Inicia sesión para favoritos");
-  usuarioActivo.favoritos=usuarioActivo.favoritos||[];
-  const idx=usuarioActivo.favoritos.indexOf(id);
-  if(idx>=0){ usuarioActivo.favoritos.splice(idx,1); document.getElementById(`fav-${id}`).textContent="🤍"; }
-  else { usuarioActivo.favoritos.push(id); document.getElementById(`fav-${id}`).textContent="❤️"; }
-  actualizarUsuarios();
+// Función para calcular descuento
+function calcularDescuentoCarrito() {
+  let totalPrendas = carritoActual.length;
+  let totalPrecio = carritoActual.reduce((sum, p) => sum + p.precio, 0);
+  let descuento = 0;
+
+  if(totalPrendas >= 16) descuento = 0.10;
+  else if(totalPrendas >= 8) descuento = 0.05;
+
+  return {
+    descuento: descuento,
+    totalFinal: totalPrecio * (1 - descuento),
+    totalPrendas: totalPrendas
+  };
 }
 
-// ===== Usuarios =====
-const formRegNombre=document.getElementById("reg-nombre");
-const formRegEmail=document.getElementById("reg-email");
-const formRegPass=document.getElementById("reg-password");
-document.getElementById("btn-registrar").addEventListener("click",()=>{
-  const nombre=formRegNombre.value.trim();
-  const email=formRegEmail.value.trim();
-  const pass=formRegPass.value.trim();
-  if(!nombre||!email||!pass) return alert("Completa todos los campos");
-  if(usuarios.some(u=>u.email===email)) return alert("Email ya registrado");
-  usuarios.push({nombre,email,password:pass,pedidos:[],favoritos:[]});
-  actualizarUsuarios();
-  alert("Registro exitoso");
-  formRegNombre.value=""; formRegEmail.value=""; formRegPass.value="";
+// Actualizar resumen del carrito
+function actualizarResumen() {
+  const resumen = calcularDescuentoCarrito();
+  totalPrendasSpan.textContent = resumen.totalPrendas;
+  descuentoSpan.textContent = resumen.descuento * 100 + "%";
+  totalFinalSpan.textContent = resumen.totalFinal.toFixed(2);
+}
+
+// Ejecutar al cargar la página
+window.onload = mostrarCarritoCompleto;
+
+// Botón pagar (visual por ahora)
+document.getElementById("pagar").addEventListener("click", () => {
+  alert("Aquí se integrará Stripe para realizar el pago seguro");
 });
-document.getElementById("btn-login").addEventListener("click",()=>{
-  const email=document.getElementById("login-email").value.trim();
-  const pass=document.getElementById("login-password").value.trim();
-  const usuario=usuarios.find(u=>u.email===email&&u.password===pass);
-  if(!usuario) return alert("Email o contraseña incorrectos");
-  usuarioActivo=usuario;
-  localStorage.setItem("usuarioActivo",JSON.stringify(usuarioActivo));
-  mostrarPerfil();
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Admin - Zona94_</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>Zona94_ Panel de Administración</h1>
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="carrito.html">Carrito</a>
+      <a href="admin.html">Panel Admin</a>
+      <a href="promociones.html">Promociones</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Productos</h2>
+    <div id="form-producto">
+      <input type="text" id="nombre" placeholder="Nombre del producto">
+      <input type="text" id="categoria" placeholder="Categoría">
+      <input type="number" id="precio" placeholder="Precio">
+      <input type="text" id="talla" placeholder="Talla">
+      <input type="text" id="marca" placeholder="Marca">
+      <input type="text" id="img" placeholder="URL de la imagen">
+      <input type="number" id="stock" placeholder="Stock">
+      <textarea id="descripcion" placeholder="Descripción"></textarea>
+      <button id="agregar-producto">Agregar Producto</button>
+    </div>
+
+    <h3>Lista de Productos</h3>
+    <div id="lista-admin-productos">
+      <!-- Productos se mostrarán aquí -->
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Zona94_ - Todos los derechos reservados</p>
+  </footer>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
+// Reutilizamos array de productos de main.js
+let listaProductos = productos;
+
+// Referencias a HTML
+const listaAdmin = document.getElementById("lista-admin-productos");
+const btnAgregar = document.getElementById("agregar-producto");
+
+// Función para mostrar productos en admin
+function mostrarProductosAdmin() {
+  listaAdmin.innerHTML = "";
+
+  listaProductos.forEach((producto, index) => {
+    const div = document.createElement("div");
+    div.classList.add("producto-admin");
+    div.innerHTML = `
+      <p>${producto.nombre} - €${producto.precio} - Stock: ${producto.stock}</p>
+      <button onclick="editarProducto(${index})">Editar</button>
+      <button onclick="borrarProducto(${index})">Borrar</button>
+    `;
+    listaAdmin.appendChild(div);
+  });
+}
+
+// Agregar producto nuevo
+btnAgregar.addEventListener("click", () => {
+  const nuevoProducto = {
+    id: listaProductos.length + 1,
+    nombre: document.getElementById("nombre").value,
+    categoria: document.getElementById("categoria").value,
+    precio: parseFloat(document.getElementById("precio").value),
+    talla: document.getElementById("talla").value,
+    marca: document.getElementById("marca").value,
+    img: document.getElementById("img").value,
+    stock: parseInt(document.getElementById("stock").value),
+    descripcion: document.getElementById("descripcion").value
+  };
+
+  listaProductos.push(nuevoProducto);
+  mostrarProductosAdmin();
+  mostrarProductos(); // Actualiza la vista principal
+  alert("Producto agregado con éxito");
+  limpiarFormulario();
 });
-document.getElementById("btn-logout").addEventListener("click",()=>{
-  usuarioActivo=null;
-  localStorage.removeItem("usuarioActivo");
-  mostrarPerfil();
-});
-function mostrarPerfil(){
-  if(usuarioActivo){
-    document.getElementById("form-registro").style.display="none";
-    document.getElementById("form-login").style.display="none";
-    document.getElementById("perfil-usuario").style.display="block";
-    document.getElementById("usuario-nombre").textContent=usuarioActivo.nombre;
-  } else {
-    document.getElementById("form-registro").style.display="block";
-    document.getElementById("form-login").style.display="block";
-    document.getElementById("perfil-usuario").style.display="none";
+
+// Función para borrar producto
+function borrarProducto(index) {
+  if(confirm("¿Seguro que quieres borrar este producto?")) {
+    listaProductos.splice(index,1);
+    mostrarProductosAdmin();
+    mostrarProductos();
   }
 }
-function actualizarUsuarios(){ localStorage.setItem("usuarios",JSON.stringify(usuarios)); }
 
-// ===== Comentarios =====
-const listaComentarios=document.getElementById("lista-comentarios");
-const nuevoComentarioDiv=document.getElementById("nuevo-comentario");
-const btnComentar=document.getElementById("btn-comentar");
-const textoComentario=document.getElementById("texto-comentario");
-const urlFoto=document.getElementById("url-foto");
-function mostrarComentarios(){
-  listaComentarios.innerHTML="";
-  const lista=comentarios.filter(c=>c.productoId===idProductoActual);
-  if(lista.length===0){ listaComentarios.innerHTML="<p>No hay comentarios todavía</p>"; return; }
-  lista.forEach(c=>{
-    const div=document.createElement("div");
+// Función para editar producto
+function editarProducto(index) {
+  const producto = listaProductos[index];
+  const nombre = prompt("Nombre:", producto.nombre);
+  const categoria = prompt("Categoría:", producto.categoria);
+  const precio = prompt("Precio:", producto.precio);
+  const talla = prompt("Talla:", producto.talla);
+  const marca = prompt("Marca:", producto.marca);
+  const img = prompt("URL Imagen:", producto.img);
+  const stock = prompt("Stock:", producto.stock);
+  const descripcion = prompt("Descripción:", producto.descripcion);
+
+  listaProductos[index] = {
+    id: producto.id,
+    nombre,
+    categoria,
+    precio: parseFloat(precio),
+    talla,
+    marca,
+    img,
+    stock: parseInt(stock),
+    descripcion
+  };
+
+  mostrarProductosAdmin();
+  mostrarProductos();
+}
+
+// Limpiar formulario
+function limpiarFormulario() {
+  document.getElementById("nombre").value = "";
+  document.getElementById("categoria").value = "";
+  document.getElementById("precio").value = "";
+  document.getElementById("talla").value = "";
+  document.getElementById("marca").value = "";
+  document.getElementById("img").value = "";
+  document.getElementById("stock").value = "";
+  document.getElementById("descripcion").value = "";
+}
+
+// Inicializa
+window.onload = mostrarProductosAdmin;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Promociones - Zona94_</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>Zona94_ Promociones</h1>
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="carrito.html">Carrito</a>
+      <a href="admin.html">Panel Admin</a>
+      <a href="promociones.html">Promociones</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Descuentos por cantidad</h2>
+    <div class="promocion">
+      <p>Compra 8 prendas y obtén <strong>5% de descuento</strong></p>
+      <p>Compra 16 prendas y obtén <strong>10% de descuento</strong></p>
+    </div>
+
+    <h2>Ofertas activas</h2>
+    <div class="promocion-activa" id="ofertas">
+      <!-- Aquí se mostrarán ofertas temporales si las hay -->
+      <p>¡Pronto añadiremos ofertas especiales por tiempo limitado!</p>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Zona94_ - Todos los derechos reservados</p>
+  </footer>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Promociones - Zona94_</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>Zona94_ Promociones</h1>
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="carrito.html">Carrito</a>
+      <a href="admin.html">Panel Admin</a>
+      <a href="promociones.html">Promociones</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="descuentos-cantidad">
+      <h2>Descuentos por cantidad</h2>
+      <div class="promocion">
+        <p>Compra <strong>8 prendas</strong> y obtén <strong>5% de descuento</strong></p>
+        <p>Compra <strong>16 prendas</strong> y obtén <strong>10% de descuento</strong></p>
+      </div>
+    </section>
+
+    <section id="ofertas-activas">
+      <h2>Ofertas activas</h2>
+      <div id="ofertas">
+        <!-- Aquí se mostrarán ofertas temporales si las hay -->
+        <p>¡Pronto añadiremos ofertas especiales por tiempo limitado!</p>
+      </div>
+    </section>
+
+    <section id="codigos-descuento">
+      <h2>Códigos de descuento</h2>
+      <p>Introduce un código en el carrito para aplicar un descuento adicional.</p>
+      <p><em>Ejemplo:</em> <strong>WELCOME10</strong> → 10% de descuento</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Zona94_ - Todos los derechos reservados</p>
+  </footer>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usuarios - Zona94_</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>Zona94_ Usuarios</h1>
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="carrito.html">Carrito</a>
+      <a href="admin.html">Panel Admin</a>
+      <a href="promociones.html">Promociones</a>
+      <a href="usuarios.html">Usuarios</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="registro">
+      <h2>Registro</h2>
+      <input type="email" id="reg-email" placeholder="Email">
+      <input type="password" id="reg-pass" placeholder="Contraseña">
+      <button id="btn-registrar">Registrarse</button>
+      <p id="msg-registro"></p>
+    </section>
+
+    <section id="login">
+      <h2>Login</h2>
+      <input type="email" id="log-email" placeholder="Email">
+      <input type="password" id="log-pass" placeholder="Contraseña">
+      <button id="btn-login">Iniciar sesión</button>
+      <p id="msg-login"></p>
+    </section>
+
+    <section id="perfil" style="display:none;">
+      <h2>Perfil de Usuario</h2>
+      <p>Email: <span id="perfil-email"></span></p>
+      <h3>Historial de Pedidos</h3>
+      <div id="historial-pedidos">
+        <p>No hay pedidos todavía</p>
+      </div>
+      <button id="btn-logout">Cerrar sesión</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Zona94_ - Todos los derechos reservados</p>
+  </footer>
+
+  <script src="js/usuarios.js"></script>
+</body>
+</html>
+// Array de usuarios (simulación, en real sería base de datos)
+let usuarios = [];
+
+// Usuario logueado actualmente
+let usuarioActivo = null;
+
+// Referencias HTML
+const regEmail = document.getElementById("reg-email");
+const regPass = document.getElementById("reg-pass");
+const btnRegistrar = document.getElementById("btn-registrar");
+const msgRegistro = document.getElementById("msg-registro");
+
+const logEmail = document.getElementById("log-email");
+const logPass = document.getElementById("log-pass");
+const btnLogin = document.getElementById("btn-login");
+const msgLogin = document.getElementById("msg-login");
+
+const perfilSection = document.getElementById("perfil");
+const perfilEmail = document.getElementById("perfil-email");
+const historialPedidos = document.getElementById("historial-pedidos");
+const btnLogout = document.getElementById("btn-logout");
+
+// REGISTRO
+btnRegistrar.addEventListener("click", () => {
+  const email = regEmail.value;
+  const pass = regPass.value;
+
+  if(!email || !pass) {
+    msgRegistro.textContent = "Completa todos los campos";
+    return;
+  }
+
+  if(usuarios.find(u => u.email === email)) {
+    msgRegistro.textContent = "El usuario ya existe";
+    return;
+  }
+
+  usuarios.push({email, pass, pedidos: []});
+  msgRegistro.textContent = "Registro exitoso ✅";
+  regEmail.value = "";
+  regPass.value = "";
+});
+
+// LOGIN
+btnLogin.addEventListener("click", () => {
+  const email = logEmail.value;
+  const pass = logPass.value;
+
+  const usuario = usuarios.find(u => u.email === email && u.pass === pass);
+  if(!usuario) {
+    msgLogin.textContent = "Email o contraseña incorrecta";
+    return;
+  }
+
+  usuarioActivo = usuario;
+  mostrarPerfil();
+});
+
+// MOSTRAR PERFIL
+function mostrarPerfil() {
+  document.getElementById("registro").style.display = "none";
+  document.getElementById("login").style.display = "none";
+  perfilSection.style.display = "block";
+  perfilEmail.textContent = usuarioActivo.email;
+
+  // Mostrar historial de pedidos
+  historialPedidos.innerHTML = "";
+  if(usuarioActivo.pedidos.length === 0){
+    historialPedidos.innerHTML = "<p>No hay pedidos todavía</p>";
+  } else {
+    usuarioActivo.pedidos.forEach((pedido, i) => {
+      const p = document.createElement("p");
+      p.textContent = `Pedido ${i+1}: ${pedido.productos.map(p=>p.nombre).join(", ")} - Total: €${pedido.total}`;
+      historialPedidos.appendChild(p);
+    });
+  }
+}
+
+// LOGOUT
+btnLogout.addEventListener("click", () => {
+  usuarioActivo = null;
+  perfilSection.style.display = "none";
+  document.getElementById("registro").style.display = "block";
+  document.getElementById("login").style.display = "block";
+});
+<section id="comentarios">
+  <h2>Comentarios de clientes</h2>
+
+  <div id="lista-comentarios">
+    <p>No hay comentarios todavía</p>
+  </div>
+
+  <div id="nuevo-comentario" style="display:none;">
+    <h3>Deja tu comentario</h3>
+    <textarea id="texto-comentario" placeholder="Escribe tu opinión..."></textarea>
+    <input type="text" id="url-foto" placeholder="URL de tu foto (opcional)">
+    <button id="btn-comentar">Publicar comentario</button>
+  </div>
+</section>
+// Array de comentarios por producto (simulado)
+let comentarios = {}; // { idProducto: [ {usuario, texto, foto} ] }
+
+// Referencias HTML
+const listaComentarios = document.getElementById("lista-comentarios");
+const nuevoComentarioDiv = document.getElementById("nuevo-comentario");
+const btnComentar = document.getElementById("btn-comentar");
+const textoComentario = document.getElementById("texto-comentario");
+const urlFoto = document.getElementById("url-foto");
+
+// Suponemos que tenemos el ID del producto actual
+let idProductoActual = 1; // se asignaría dinámicamente al abrir el producto
+
+// Mostrar comentarios
+function mostrarComentarios() {
+  const lista = comentarios[idProductoActual] || [];
+  listaComentarios.innerHTML = "";
+
+  if(lista.length === 0){
+    listaComentarios.innerHTML = "<p>No hay comentarios todavía</p>";
+    return;
+  }
+
+  lista.forEach(c => {
+    const div = document.createElement("div");
     div.classList.add("comentario");
-    div.innerHTML=`<p><strong>${c.usuario}</strong></p><p>${c.texto}</p>${c.foto?`<img src="${c.foto}" style="max-width:200px;">`:""}<hr>`;
+    div.innerHTML = `
+      <p><strong>${c.usuario}</strong></p>
+      <p>${c.texto}</p>
+      ${c.foto ? `<img src="${c.foto}" alt="Foto de ${c.usuario}" style="max-width:100px;">` : ""}
+    `;
     listaComentarios.appendChild(div);
   });
 }
-function verificarFormulario(){ 
-  if(usuarioActivo && usuarioActivo.pedidos.some(p=>p.productos.some(prod=>prod.id===idProductoActual))) nuevoComentarioDiv.style.display="block";
-  else nuevoComentarioDiv.style.display="none";
+
+// Mostrar formulario solo si el usuario ha comprado
+function verificarUsuarioCompra() {
+  if(usuarioActivo && usuarioActivo.pedidos.some(pedido =>
+    pedido.productos.some(prod => prod.id === idProductoActual)
+  )) {
+    nuevoComentarioDiv.style.display = "block";
+  } else {
+    nuevoComentarioDiv.style.display = "none";
+  }
 }
-btnComentar.addEventListener("click",()=>{
-  if(!usuarioActivo) return alert("Inicia sesión para comentar");
-  const texto=textoComentario.value.trim();
-  const foto=urlFoto.value.trim();
+
+// Agregar comentario
+btnComentar.addEventListener("click", () => {
+  const texto = textoComentario.value;
+  const foto = urlFoto.value;
+
   if(!texto) return alert("Escribe tu comentario");
-  comentarios.push({productoId:idProductoActual,usuario:usuarioActivo.nombre,texto,foto});
-  localStorage.setItem("comentarios",JSON.stringify(comentarios));
-  textoComentario.value=""; urlFoto.value="";
+
+  if(!comentarios[idProductoActual]) comentarios[idProductoActual] = [];
+  comentarios[idProductoActual].push({
+    usuario: usuarioActivo.email,
+    texto,
+    foto
+  });
+
+  textoComentario.value = "";
+  urlFoto.value = "";
   mostrarComentarios();
 });
-window.onload=()=>{
-  mostrarProductos(); mostrarCarritoCompleto(); mostrarPerfil(); mostrarComentarios(); verificarFormulario(); initPayPalButton();
-};
 
-// ===== Buscador =====
-const inputBuscador=document.getElementById("buscador");
-const resultados=document.getElementById("resultados-busqueda");
-inputBuscador.addEventListener("input",()=>{
-  const q=inputBuscador.value.toLowerCase();
-  const filtrados=productos.filter(p=>p.nombre.toLowerCase().includes(q)||p.marca.toLowerCase().includes(q)||p.categoria.toLowerCase().includes(q));
-  resultados.innerHTML="";
-  filtrados.forEach(p=>{
-    const div=document.createElement("div");
-    div.textContent=`${p.nombre} - ${p.marca} - €${p.precio}`;
+// Inicializar
+window.onload = () => {
+  mostrarComentarios();
+  verificarUsuarioCompra();
+};
+// Array de usuarios (simulado, en producción iría en DB)
+let usuarios = [
+  { email: "miguel@mail.com", contraseña: "1234", pedidos: [] },
+  { email: "ana@mail.com", contraseña: "abcd", pedidos: [] }
+];
+
+let usuarioActivo = null;
+
+// Registro
+function registrar(email, contraseña) {
+  if(usuarios.some(u => u.email === email)) return alert("Usuario ya existe");
+  const nuevo = { email, contraseña, pedidos: [] };
+  usuarios.push(nuevo);
+  alert("Usuario registrado");
+}
+
+// Login
+function login(email, contraseña) {
+  const usuario = usuarios.find(u => u.email === email && u.contraseña === contraseña);
+  if(!usuario) return alert("Email o contraseña incorrectos");
+  usuarioActivo = usuario;
+  alert(`Bienvenido ${email}`);
+  mostrarPerfil();
+}
+
+// Logout
+function logout() {
+  usuarioActivo = null;
+  alert("Sesión cerrada");
+  mostrarPerfil();
+}
+
+// Mostrar perfil y pedidos
+function mostrarPerfil() {
+  const div = document.getElementById("perfil-usuario");
+  if(!usuarioActivo) {
+    div.innerHTML = "<p>No has iniciado sesión</p>";
+    return;
+  }
+  div.innerHTML = `<h3>Bienvenido ${usuarioActivo.email}</h3>`;
+  if(usuarioActivo.pedidos.length === 0){
+    div.innerHTML += "<p>No tienes pedidos todavía</p>";
+    return;
+  }
+
+  usuarioActivo.pedidos.forEach((pedido, index) => {
+    const p = document.createElement("div");
+    p.innerHTML = `<strong>Pedido #${index+1}</strong><br>
+      Productos: ${pedido.productos.map(prod => prod.nombre).join(", ")}<br>
+      Total: €${pedido.total.toFixed(2)}<br>
+      Estado: ${pedido.estado}`;
+    div.appendChild(p);
+  });
+}
+document.getElementById("pagar").addEventListener("click", () => {
+  if(!usuarioActivo) return alert("Debes iniciar sesión para pagar");
+
+  const resumen = calcularDescuentoCarrito();
+
+  // Crear pedido
+  const pedido = {
+    productos: [...carritoActual],
+    total: resumen.totalFinal,
+    estado: "Pendiente",
+    fecha: new Date()
+  };
+
+  usuarioActivo.pedidos.push(pedido);
+
+  // Limpiar carrito
+  carritoActual = [];
+  mostrarCarritoCompleto();
+  alert("Pago realizado con éxito. Pedido guardado en tu perfil.");
+
+  mostrarPerfil(); // Actualiza historial
+});
+function verificarUsuarioCompra() {
+  if(!usuarioActivo) return;
+  
+  if(usuarioActivo.pedidos.some(pedido =>
+      pedido.productos.some(prod => prod.id === idProductoActual)
+  )) {
+    nuevoComentarioDiv.style.display = "block";
+  } else {
+    nuevoComentarioDiv.style.display = "none";
+  }
+}
+<section id="login-registro">
+  <h2>Acceso de usuarios</h2>
+
+  <div id="form-registro">
+    <input type="email" id="reg-email" placeholder="Email">
+    <input type="password" id="reg-pass" placeholder="Contraseña">
+    <button onclick="registrar(document.getElementById('reg-email').value, document.getElementById('reg-pass').value)">Registrar</button>
+  </div>
+
+  <div id="form-login">
+    <input type="email" id="login-email" placeholder="Email">
+    <input type="password" id="login-pass" placeholder="Contraseña">
+    <button onclick="login(document.getElementById('login-email').value, document.getElementById('login-pass').value)">Iniciar sesión</button>
+    <button onclick="logout()">Cerrar sesión</button>
+  </div>
+
+  <div id="perfil-usuario">
+    <!-- Aquí se muestran pedidos y perfil -->
+  </div>
+</section>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrito - Zona94_</title>
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- SDK de PayPal -->
+  <script src="https://www.paypal.com/sdk/js?client-id=TU_CLIENT_ID&currency=EUR"></script>
+</head>
+<body>
+  <header>
+    <h1>Zona94_ Tienda de Ropa</h1>
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="carrito.html">Carrito</a>
+      <a href="admin.html">Panel Admin</a>
+      <a href="promociones.html">Promociones</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Carrito de Compras</h2>
+    <div id="carrito-productos">
+      <!-- Productos del carrito se cargarán aquí -->
+    </div>
+    <div id="resumen-carrito">
+      <p>Total productos: <span id="total-prendas">0</span></p>
+      <p>Descuento aplicado: <span id="descuento">0%</span></p>
+      <p>Total final: €<span id="total-final">0</span></p>
+
+      <!-- Contenedor del botón de PayPal -->
+      <div id="paypal-button-container"></div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Zona94_ - Todos los derechos reservados</p>
+  </footer>
+
+  <script src="js/carrito.js"></script>
+</body>
+</html>
+// Reutilizamos carrito desde main.js
+let carritoActual = carrito; // Array de productos
+const contenedorCarrito = document.getElementById("carrito-productos");
+const totalPrendasSpan = document.getElementById("total-prendas");
+const descuentoSpan = document.getElementById("descuento");
+const totalFinalSpan = document.getElementById("total-final");
+
+// Mostrar carrito
+function mostrarCarritoCompleto() {
+  contenedorCarrito.innerHTML = "";
+
+  carritoActual.forEach((producto, index) => {
+    const div = document.createElement("div");
+    div.classList.add("producto-carrito");
+    div.innerHTML = `
+      <p>${producto.nombre} - €${producto.precio}</p>
+      <button onclick="quitarDelCarrito(${index})">Quitar</button>
+    `;
+    contenedorCarrito.appendChild(div);
+  });
+
+  actualizarResumen();
+}
+
+// Quitar producto
+function quitarDelCarrito(index) {
+  carritoActual.splice(index, 1);
+  mostrarCarritoCompleto();
+}
+
+// Calcular descuento
+function calcularDescuentoCarrito() {
+  let totalPrendas = carritoActual.length;
+  let totalPrecio = carritoActual.reduce((sum, p) => sum + p.precio, 0);
+  let descuento = 0;
+
+  if(totalPrendas >= 16) descuento = 0.10;
+  else if(totalPrendas >= 8) descuento = 0.05;
+
+  return {
+    descuento: descuento,
+    totalFinal: totalPrecio * (1 - descuento),
+    totalPrendas: totalPrendas
+  };
+}
+
+// Actualizar resumen
+function actualizarResumen() {
+  const resumen = calcularDescuentoCarrito();
+  totalPrendasSpan.textContent = resumen.totalPrendas;
+  descuentoSpan.textContent = resumen.descuento * 100 + "%";
+  totalFinalSpan.textContent = resumen.totalFinal.toFixed(2);
+}
+
+// ----------------------
+// PayPal Integration
+// ----------------------
+function initPayPalButton() {
+  const resumen = calcularDescuentoCarrito();
+
+  paypal.Buttons({
+    style: {
+      shape: 'rect',
+      color: 'blue',
+      layout: 'vertical',
+      label: 'paypal'
+    },
+    createOrder: function(data, actions) {
+      return actions.order.create({
+        purchase_units: [{
+          amount: {
+            value: resumen.totalFinal.toFixed(2)
+          }
+        }]
+      });
+    },
+    onApprove: function(data, actions) {
+      return actions.order.capture().then(function(details) {
+        alert('Pago completado por ' + details.payer.name.given_name);
+
+        // Guardar pedido en perfil del usuario (simulado)
+        if(usuarioActivo) {
+          const pedido = {
+            productos: [...carritoActual],
+            total: resumen.totalFinal,
+            estado: "Pendiente",
+            fecha: new Date()
+          };
+          usuarioActivo.pedidos.push(pedido);
+          carritoActual = [];
+          mostrarCarritoCompleto();
+          mostrarPerfil(); // Función de perfil para actualizar historial
+        } else {
+          alert("Debes iniciar sesión para guardar el pedido");
+        }
+      });
+    },
+    onError: function(err) {
+      console.error(err);
+      alert('Ocurrió un error con el pago. Intenta de nuevo.');
+    }
+  }).render('#paypal-button-container');
+}
+
+// Ejecutar al cargar
+window.onload = () => {
+  mostrarCarritoCompleto();
+  initPayPalButton();
+};
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usuarios - Zona94_</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>Zona94_ Usuarios</h1>
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="carrito.html">Carrito</a>
+      <a href="admin.html">Panel Admin</a>
+      <a href="promociones.html">Promociones</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="registro-login">
+      <div id="form-registro">
+        <h2>Registro</h2>
+        <input type="text" id="reg-nombre" placeholder="Nombre">
+        <input type="email" id="reg-email" placeholder="Email">
+        <input type="password" id="reg-password" placeholder="Contraseña">
+        <button id="btn-registrar">Registrar</button>
+      </div>
+
+      <div id="form-login">
+        <h2>Login</h2>
+        <input type="email" id="login-email" placeholder="Email">
+        <input type="password" id="login-password" placeholder="Contraseña">
+        <button id="btn-login">Iniciar sesión</button>
+      </div>
+    </section>
+
+    <section id="perfil-usuario" style="display:none;">
+      <h2>Perfil de Usuario</h2>
+      <p>Bienvenido, <span id="usuario-nombre"></span></p>
+      <h3>Historial de Pedidos</h3>
+      <div id="lista-pedidos">
+        <!-- Pedidos se mostrarán aquí -->
+      </div>
+      <button id="btn-logout">Cerrar sesión</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Zona94_ - Todos los derechos reservados</p>
+  </footer>
+
+  <script src="js/usuarios.js"></script>
+</body>
+</html>
+// Array de usuarios simulando DB local
+let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+
+// Usuario activo
+let usuarioActivo = JSON.parse(localStorage.getItem("usuarioActivo")) || null;
+
+// Referencias HTML
+const formRegistro = document.getElementById("form-registro");
+const formLogin = document.getElementById("form-login");
+const perfil = document.getElementById("perfil-usuario");
+const usuarioNombre = document.getElementById("usuario-nombre");
+const listaPedidos = document.getElementById("lista-pedidos");
+
+// Registrar usuario
+document.getElementById("btn-registrar").addEventListener("click", () => {
+  const nombre = document.getElementById("reg-nombre").value.trim();
+  const email = document.getElementById("reg-email").value.trim();
+  const password = document.getElementById("reg-password").value.trim();
+
+  if(!nombre || !email || !password){
+    alert("Completa todos los campos");
+    return;
+  }
+
+  // Verificar si email existe
+  if(usuarios.some(u => u.email === email)){
+    alert("Este email ya está registrado");
+    return;
+  }
+
+  const nuevoUsuario = {
+    nombre,
+    email,
+    password,
+    pedidos: []
+  };
+
+  usuarios.push(nuevoUsuario);
+  localStorage.setItem("usuarios", JSON.stringify(usuarios));
+  alert("Registro exitoso, ya puedes iniciar sesión");
+
+  // Limpiar formulario
+  document.getElementById("reg-nombre").value = "";
+  document.getElementById("reg-email").value = "";
+  document.getElementById("reg-password").value = "";
+});
+
+// Login
+document.getElementById("btn-login").addEventListener("click", () => {
+  const email = document.getElementById("login-email").value.trim();
+  const password = document.getElementById("login-password").value.trim();
+
+  const usuario = usuarios.find(u => u.email === email && u.password === password);
+  if(!usuario){
+    alert("Email o contraseña incorrectos");
+    return;
+  }
+
+  usuarioActivo = usuario;
+  localStorage.setItem("usuarioActivo", JSON.stringify(usuarioActivo));
+  mostrarPerfil();
+});
+
+// Mostrar perfil
+function mostrarPerfil(){
+  if(!usuarioActivo) return;
+
+  formRegistro.style.display = "none";
+  formLogin.style.display = "none";
+  perfil.style.display = "block";
+  usuarioNombre.textContent = usuarioActivo.nombre;
+
+  listaPedidos.innerHTML = "";
+
+  if(usuarioActivo.pedidos.length === 0){
+    listaPedidos.innerHTML = "<p>No tienes pedidos aún.</p>";
+  } else {
+    usuarioActivo.pedidos.forEach((pedido, index) => {
+      const div = document.createElement("div");
+      div.classList.add("pedido");
+      div.innerHTML = `
+        <p>Pedido #${index + 1} - ${pedido.fecha}</p>
+        <p>Total: €${pedido.total.toFixed(2)}</p>
+        <p>Estado: ${pedido.estado}</p>
+        <p>Productos: ${pedido.productos.map(p => p.nombre).join(", ")}</p>
+        <hr>
+      `;
+      listaPedidos.appendChild(div);
+    });
+  }
+}
+
+// Logout
+document.getElementById("btn-logout").addEventListener("click", () => {
+  usuarioActivo = null;
+  localStorage.removeItem("usuarioActivo");
+  perfil.style.display = "none";
+  formRegistro.style.display = "block";
+  formLogin.style.display = "block";
+});
+
+// Inicializar
+window.onload = () => {
+  if(usuarioActivo){
+    mostrarPerfil();
+  }
+}
+// Array de comentarios simulando DB local
+let comentarios = JSON.parse(localStorage.getItem("comentarios")) || [];
+
+// Referencias HTML
+const formComentario = document.getElementById("form-comentario");
+const textoComentario = document.getElementById("texto-comentario");
+const fotoComentario = document.getElementById("foto-comentario");
+const btnComentar = document.getElementById("btn-comentar");
+const listaComentarios = document.getElementById("lista-comentarios");
+
+// Producto actual (puede venir de URL o selección)
+const idProductoActual = 1; // ejemplo, el producto que se está viendo
+
+// Mostrar comentarios del producto
+function mostrarComentarios() {
+  listaComentarios.innerHTML = "";
+  const comentariosProducto = comentarios.filter(c => c.productoId === idProductoActual);
+
+  if(comentariosProducto.length === 0){
+    listaComentarios.innerHTML = "<p>No hay comentarios todavía.</p>";
+  } else {
+    comentariosProducto.forEach(c => {
+      const div = document.createElement("div");
+      div.classList.add("comentario");
+      div.innerHTML = `
+        <p><strong>${c.usuario}</strong></p>
+        <p>${c.texto}</p>
+        ${c.foto ? `<img src="${c.foto}" alt="Foto del comentario" style="max-width:200px;">` : ""}
+        <hr>
+      `;
+      listaComentarios.appendChild(div);
+    });
+  }
+}
+
+// Mostrar formulario si usuario activo compró este producto
+function verificarFormulario() {
+  if(usuarioActivo && usuarioActivo.pedidos.some(p => 
+      p.productos.some(prod => prod.id === idProductoActual)
+    )) {
+    formComentario.style.display = "block";
+  } else {
+    formComentario.style.display = "none";
+  }
+}
+
+// Publicar comentario
+btnComentar.addEventListener("click", () => {
+  const texto = textoComentario.value.trim();
+  const fotoFile = fotoComentario.files[0];
+
+  if(!texto){
+    alert("Escribe un comentario antes de enviar");
+    return;
+  }
+
+  let fotoURL = "";
+  if(fotoFile){
+    // Convertir a Base64 para guardar en localStorage (solo para ejemplo)
+    const reader = new FileReader();
+    reader.onload = function(e){
+      fotoURL = e.target.result;
+      guardarComentario(texto, fotoURL);
+    }
+    reader.readAsDataURL(fotoFile);
+  } else {
+    guardarComentario(texto, fotoURL);
+  }
+});
+
+// Función para guardar comentario
+function guardarComentario(texto, foto){
+  const nuevoComentario = {
+    productoId: idProductoActual,
+    usuario: usuarioActivo.nombre,
+    texto,
+    foto
+  };
+
+  comentarios.push(nuevoComentario);
+  localStorage.setItem("comentarios", JSON.stringify(comentarios));
+
+  textoComentario.value = "";
+  fotoComentario.value = "";
+
+  mostrarComentarios();
+}
+
+// Inicializar
+window.onload = () => {
+  mostrarComentarios();
+  verificarFormulario();
+}
+<div id="historial-pedidos">
+  <!-- Lista de pedidos -->
+</div>
+<button id="descargar-factura">Descargar factura PDF</button>
+
+<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+const btnFactura = document.getElementById("descargar-factura");
+
+btnFactura.addEventListener("click", () => {
+  const pedido = usuarioActivo.pedidos[usuarioActivo.pedidos.length - 1]; // último pedido
+  if(!pedido) return alert("No hay pedidos para generar factura");
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(16);
+  doc.text("Factura Zona94_", 20, 20);
+  doc.setFontSize(12);
+  doc.text(`Cliente: ${usuarioActivo.nombre}`, 20, 30);
+  doc.text(`Fecha: ${pedido.fecha.toLocaleDateString()}`, 20, 40);
+  doc.text(`Total: €${pedido.total.toFixed(2)}`, 20, 50);
+
+  doc.text("Productos:", 20, 60);
+  pedido.productos.forEach((p, i) => {
+    doc.text(`${i+1}. ${p.nombre} - €${p.precio}`, 25, 70 + i*10);
+  });
+
+  doc.save("Factura_Zona94.pdf");
+});
+<button onclick="toggleFavorito(${producto.id})" id="fav-${producto.id}">❤️</button>
+// Array favoritos por usuario (simulado)
+usuarioActivo.favoritos = usuarioActivo.favoritos || [];
+
+function toggleFavorito(idProducto){
+  const index = usuarioActivo.favoritos.indexOf(idProducto);
+  if(index >= 0){
+    usuarioActivo.favoritos.splice(index, 1);
+    document.getElementById(`fav-${idProducto}`).textContent = "🤍";
+  } else {
+    usuarioActivo.favoritos.push(idProducto);
+    document.getElementById(`fav-${idProducto}`).textContent = "❤️";
+  }
+  localStorage.setItem("usuarios", JSON.stringify(usuarios)); // guarda cambios
+}
+<input type="text" id="buscador" placeholder="Buscar producto...">
+<div id="resultados-busqueda"></div>
+const inputBuscador = document.getElementById("buscador");
+const resultados = document.getElementById("resultados-busqueda");
+
+inputBuscador.addEventListener("input", () => {
+  const query = inputBuscador.value.toLowerCase();
+  const filtrados = productos.filter(p =>
+    p.nombre.toLowerCase().includes(query) ||
+    p.marca.toLowerCase().includes(query) ||
+    p.categoria.toLowerCase().includes(query)
+  );
+
+  resultados.innerHTML = "";
+  filtrados.forEach(p => {
+    const div = document.createElement("div");
+    div.innerHTML = `${p.nombre} - ${p.marca} - €${p.precio}`;
     resultados.appendChild(div);
   });
 });
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedidos - Zona94_ Admin</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .pedido { background: #fff; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+    .pedido p { margin: 5px 0; }
+    .pedido button, .pedido input { margin-right: 5px; }
+    #chat { position: fixed; bottom: 20px; right: 20px; width: 300px; max-height: 400px; border: 1px solid #ccc; background: #fff; border-radius: 5px; display: flex; flex-direction: column; }
+    #chat-mensajes { flex: 1; overflow-y: auto; padding: 10px; }
+    #chat-input { display: flex; }
+    #chat-input input { flex: 1; padding: 5px; }
+    #chat-input button { padding: 5px 10px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Zona94_ Panel de Pedidos</h1>
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="admin.html">Productos</a>
+      <a href="admin-pedidos.html">Pedidos</a>
+    </nav>
+  </header>
 
-// ===== Factura PDF =====
-document.getElementById("descargar-factura").addEventListener("click",()=>{
-  if(!usuarioActivo||usuarioActivo.pedidos.length===0) return alert("No hay pedidos");
-  const pedido=usuarioActivo.pedidos[usuarioActivo.pedidos.length-1];
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF();
-  doc.setFontSize(16); doc.text("Factura Zona94_",20,20);
-  doc.setFontSize(12); doc.text(`Cliente: ${usuarioActivo.nombre}`,20,30);
-  doc.text(`Fecha: ${new Date(pedido.fecha).toLocaleDateString()}`,20,40);
-  doc.text(`Total: €${pedido.total.toFixed(2)}`,20,50);
-  doc.text("Productos:",20,60);
-  pedido.productos.forEach((p,i)=>doc.text(`${i+1}. ${p.nombre} - €${p.precio}`,25,70+i*10));
-  doc.save("Factura_Zona94.pdf");
-});
+  <main>
+    <h2>Pedidos Recibidos</h2>
+    <div id="lista-pedidos">
+      <!-- Pedidos se cargarán aquí -->
+    </div>
 
-// ===== PayPal =====
-function initPayPalButton(){
-  paypal.Buttons({
-    style:{shape:'rect',color:'blue',layout:'vertical',label:'paypal'},
-    createOrder:(data,actions)=>{
-      return actions.order.create({purchase_units:[{amount:{value:calcularDescuentoCarrito().totalFinal.toFixed(2)}}]});
-    },
-    onApprove:(data,actions)=>{
-      return actions.order.capture().then(details=>{
-        alert('Pago completado por '+details.payer.name.given_name);
-        if(usuarioActivo){
-          usuarioActivo.pedidos.push({productos:[...carrito],total:calcularDescuentoCarrito().totalFinal,estado:"Pendiente",fecha:new Date()});
-          carrito=[]; mostrarCarritoCompleto(); mostrarPerfil(); actualizarUsuarios();
-        } else alert("Inicia sesión para guardar pedido");
-      });
-    },
-    onError:err=>{ console.error(err); alert("Error con PayPal"); }
-  }).render('#paypal-button-container');
-}
-</script>
+    <h2>Atención al Cliente</h2>
+    <p>Correo: <a href="mailto:zona94business@gmail.com">zona94business@gmail.com</a></p>
 
+    <div id="chat">
+      <div id="chat-mensajes"></div>
+      <div id="chat-input">
+        <input type="text" id="mensaje" placeholder="Escribe un mensaje...">
+        <button id="enviar-mensaje">Enviar</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Zona94_ - Todos los derechos reservados</p>
+  </footer>
+
+  <script src="js/admin-pedidos.js"></script>
 </body>
 </html>
+// Ejemplo de pedidos (normalmente vendría de la DB o del PayPal)
+let pedidos = [
+  {
+    id: 1,
+    usuario: "Juan Pérez",
+    email: "juan@email.com",
+    direccion: "Calle Falsa 123",
+    codigoPostal: "28000",
+    productos: [
+      { nombre: "Camiseta Fútbol", precio: 20 },
+      { nombre: "Sudadera Variada", precio: 30 }
+    ],
+    total: 50,
+    estado: "Pendiente",
+    enlaceEnvio: "",
+    fecha: new Date().toLocaleString()
+  }
+];
+
+const listaPedidosDiv = document.getElementById("lista-pedidos");
+
+// Función para mostrar pedidos
+function mostrarPedidos() {
+  listaPedidosDiv.innerHTML = "";
+  pedidos.forEach((pedido, index) => {
+    const div = document.createElement("div");
+    div.classList.add("pedido");
+    div.innerHTML = `
+      <p><strong>ID Pedido:</strong> ${pedido.id}</p>
+      <p><strong>Usuario:</strong> ${pedido.usuario} (${pedido.email})</p>
+      <p><strong>Dirección:</strong> ${pedido.direccion}, CP: ${pedido.codigoPostal}</p>
+      <p><strong>Productos:</strong> ${pedido.productos.map(p => p.nombre + " €" + p.precio).join(", ")}</p>
+      <p><strong>Total:</strong> €${pedido.total}</p>
+      <p><strong>Estado:</strong> 
+        <select id="estado-${index}">
+          <option value="Pendiente" ${pedido.estado === "Pendiente" ? "selected" : ""}>Pendiente</option>
+          <option value="Enviado" ${pedido.estado === "Enviado" ? "selected" : ""}>Enviado</option>
+          <option value="Entregado" ${pedido.estado === "Entregado" ? "selected" : ""}>Entregado</option>
+        </select>
+        <button onclick="cambiarEstado(${index})">Actualizar</button>
+      </p>
+      <p><strong>Enlace de envío:</strong> 
+        <input type="text" id="envio-${index}" value="${pedido.enlaceEnvio}" placeholder="Agregar enlace">
+        <button onclick="actualizarEnvio(${index})">Guardar</button>
+      </p>
+    `;
+    listaPedidosDiv.appendChild(div);
+  });
+}
+
+// Cambiar estado del pedido
+function cambiarEstado(index) {
+  const select = document.getElementById(`estado-${index}`);
+  pedidos[index].estado = select.value;
+  alert(`Estado del pedido ${pedidos[index].id} actualizado a ${select.value}`);
+  mostrarPedidos();
+}
+
+// Guardar enlace de envío
+function actualizarEnvio(index) {
+  const input = document.getElementById(`envio-${index}`);
+  pedidos[index].enlaceEnvio = input.value;
+  alert(`Enlace de envío del pedido ${pedidos[index].id} actualizado`);
+  mostrarPedidos();
+}
+
+// Chat simple estilo WhatsApp (solo frontend)
+const mensajesDiv = document.getElementById("chat-mensajes");
+const inputMensaje = document.getElementById("mensaje");
+document.getElementById("enviar-mensaje").addEventListener("click", () => {
+  if(inputMensaje.value.trim() !== "") {
+    const msgDiv = document.createElement("div");
+    msgDiv.textContent = `Admin: ${inputMensaje.value}`;
+    mensajesDiv.appendChild(msgDiv);
+    mensajesDiv.scrollTop = mensajesDiv.scrollHeight;
+    inputMensaje.value = "";
+  }
+});
+
+// Guardar pedido desde PayPal (ejemplo)
+// Esto se pondría en tu carrito.js en onApprove de PayPal
+function guardarPedidoPayPal(usuario, carrito, total) {
+  const nuevoPedido = {
+    id: pedidos.length + 1,
+    usuario: usuario.nombre,
+    email: usuario.email,
+    direccion: usuario.direccion,
+    codigoPostal: usuario.codigoPostal,
+    productos: [...carrito],
+    total: total,
+    estado: "Pendiente",
+    enlaceEnvio: "",
+    fecha: new Date().toLocaleString()
+  };
+  pedidos.push(nuevoPedido);
+  mostrarPedidos();
+}
+
+// Inicializar
+mostrarPedidos();
